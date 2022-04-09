@@ -1,0 +1,39 @@
+common:
+  # 程序名称
+  name: "AirFile"
+
+  # 程序运行端口
+  port: 8085
+
+upload:
+  # 上传目录
+  path: "/files/"
+  # 文件大小(单位：M)
+  size: 100
+
+# 数据库
+database:
+  # 驱动(mysql/sqlite)
+  driver: "sqlite"
+
+sqlite:
+  # 数据库文件目录
+  path: "/database/data.db"
+  # 表前缀
+  tablePrefix: "air_"
+
+mysql:
+  #mysql地址
+  domain: "127.0.0.1"
+  #mysql端口
+  port: "3380"
+  #mysql账号
+  user: "root"
+  #mysql密码
+  password: "root"
+  #mysql编码
+  charset: "utf8mb4"
+  #数据库名称
+  dbname: "AirFile"
+  #表前缀
+  tablePrefix: "air_"
