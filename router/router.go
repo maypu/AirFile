@@ -200,7 +200,6 @@ func Routers(r *gin.Engine) *gin.Engine {
 		}
 		c.JSON(http.StatusOK, response)
 	})
-
 	v1.GET("/file/:fileId", func(c *gin.Context) {
 		response := model.NewResponse()
 		fileId := c.Param("fileId")
@@ -244,6 +243,20 @@ func Routers(r *gin.Engine) *gin.Engine {
 		c.Header("Content-Disposition", "attachment; filename="+mFile.FileName)
 		c.Header("Content-Transfer-Encoding", "binary")
 		c.File(wholePath)
+	})
+	v1.POST("/history", func(c *gin.Context) {
+		response := model.NewResponse()
+		params := make(map[string]interface{})
+		c.BindJSON(&params)
+		uuidString := fmt.Sprintf("%v", params["uuid"])
+
+		var mFile []model.File
+		db.Where(&model.User{UUID: uuidString}).Find(&mFile)
+		mFile2,_ := json.Marshal(mFile)
+
+		response.Code = 200
+		response.Result = string(mFile2)
+		c.JSON(http.StatusOK, response)
 	})
 	return r
 }
