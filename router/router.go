@@ -11,9 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -105,10 +107,22 @@ func Routers(r *gin.Engine) *gin.Engine {
 		random := utils.Random(6)
 		fileName := random
 		corrPath, _ := os.Getwd() //获取项目的执行路径
-		fileDir := utils.GetConfig("upload.path") + time.Now().Format("200601") + "/"
+		fileDir := path.Join(utils.GetConfig("upload.path"), time.Now().Format("200601"), "/")
+		if runtime.GOOS == "windows" {
+			strings.Replace(fileDir, "/", "\\", 5)
+		} else {
+			strings.Replace(fileDir, "\\", "/", -1)
+		}
 		//创建文件夹
-		if _, err := os.Stat(corrPath + fileDir); os.IsNotExist(err) {
-			os.Mkdir(corrPath+fileDir, os.ModePerm)
+		if _, err := os.Stat(path.Join(corrPath,fileDir)); os.IsNotExist(err) {
+			err := os.MkdirAll(path.Join(corrPath,fileDir), os.ModePerm)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err2 := os.Chmod(path.Join(corrPath,fileDir), os.ModePerm)
+			if err2 != nil {
+				log.Fatal(err2)
+			}
 		}
 		//组装完整路径与文件名和后缀
 		filepath := fmt.Sprintf("%s%s%s", corrPath+fileDir, fileName, fileExt)
