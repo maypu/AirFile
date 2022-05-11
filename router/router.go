@@ -49,7 +49,7 @@ func Routers(r *gin.Engine) *gin.Engine {
 		params := make(map[string]interface{})
 		c.BindJSON(&params)
 		uuidString := fmt.Sprintf("%v", params["uuid"])
-		if uuidString == "" {
+		if uuidString == "" || uuidString == "<nil>" {
 			uuidString = uuid.New().String()
 		}
 		var mUser []model.User
@@ -98,7 +98,7 @@ func Routers(r *gin.Engine) *gin.Engine {
 		//	return
 		//}
 		maxSize, _ := strconv.Atoi(utils.GetConfig("upload.size"))
-		if f.Size > int64(maxSize * 1024 * 1024) {
+		if f.Size > int64(maxSize*1024*1024) {
 			response.Code = 500
 			response.Message = "文件最大限制为" + utils.GetConfig("upload.size") + "M！"
 			c.JSON(http.StatusOK, response)
@@ -107,19 +107,21 @@ func Routers(r *gin.Engine) *gin.Engine {
 		random := utils.Random(6)
 		fileName := random
 		corrPath, _ := os.Getwd() //获取项目的执行路径
-		fileDir := path.Join(utils.GetConfig("upload.path"), time.Now().Format("200601"), "/")
+		fileDir := path.Join(utils.GetConfig("upload.path"), time.Now().Format("200601")) + "/"
+		fmt.Println(fileDir)
 		if runtime.GOOS == "windows" {
 			strings.Replace(fileDir, "/", "\\", 5)
 		} else {
 			strings.Replace(fileDir, "\\", "/", -1)
 		}
+		fmt.Println(fileDir)
 		//创建文件夹
-		if _, err := os.Stat(path.Join(corrPath,fileDir)); os.IsNotExist(err) {
-			err := os.MkdirAll(path.Join(corrPath,fileDir), os.ModePerm)
+		if _, err := os.Stat(path.Join(corrPath, fileDir)); os.IsNotExist(err) {
+			err := os.MkdirAll(path.Join(corrPath, fileDir), os.ModePerm)
 			if err != nil {
 				log.Fatal(err)
 			}
-			err2 := os.Chmod(path.Join(corrPath,fileDir), os.ModePerm)
+			err2 := os.Chmod(path.Join(corrPath, fileDir), os.ModePerm)
 			if err2 != nil {
 				log.Fatal(err2)
 			}
@@ -218,7 +220,7 @@ func Routers(r *gin.Engine) *gin.Engine {
 		response := model.NewResponse()
 		fileId := c.Param("fileId")
 		random := c.Query("random")
-		if fileId == "" || random == ""{
+		if fileId == "" || random == "" {
 			response.Code = 500
 			response.Message = "错误请求"
 			c.JSON(http.StatusOK, response)
@@ -244,12 +246,12 @@ func Routers(r *gin.Engine) *gin.Engine {
 		}
 		defer file.Close()
 		// 下载次数+1
-		randomCache,_ := MCache.Get("random")
+		randomCache, _ := MCache.Get("random")
 		if randomCache != random {
 			db.Model(&model.File{}).Where("ID = "+fileId).Update("num_downloads", gorm.Expr("num_downloads + ?", 1))
-			err := MCache.Set("random", random, time.Hour * 1)	//过期时间，1小时
+			err := MCache.Set("random", random, time.Hour*1) //过期时间，1小时
 			if err != nil {
-				fmt.Println("MCache:",err)
+				fmt.Println("MCache:", err)
 			}
 		}
 		// 发送下载header
@@ -264,9 +266,12 @@ func Routers(r *gin.Engine) *gin.Engine {
 		c.BindJSON(&params)
 		uuidString := fmt.Sprintf("%v", params["uuid"])
 
+		var mUser *model.User
+		db.Where(&model.User{UUID: uuidString}).First(&mUser)
+
 		var mFile []model.File
-		db.Where(&model.User{UUID: uuidString}).Find(&mFile)
-		mFile2,_ := json.Marshal(mFile)
+		db.Where(&model.File{User: mUser.ID}).Unscoped().Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
+		mFile2, _ := json.Marshal(mFile)
 
 		response.Code = 200
 		response.Result = string(mFile2)
