@@ -5,7 +5,6 @@ import (
 	"AirFile/router"
 	"AirFile/utils"
 	"fmt"
-	"github.com/gin-gonic/gin"
 )
 
 // go env -w CGO_ENABLED=0
@@ -13,8 +12,7 @@ import (
 // go env -w GOARCH=amd64
 // go build
 func main() {
-	r := gin.Default()
-	middleware.InitGinMode()
+	r := middleware.InitGin()
 	r.Use(middleware.Cors())
 	//r.Use(middleware.InitSessions(r))
 	r = router.Routers(r) // 加载路由
