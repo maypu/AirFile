@@ -16,16 +16,15 @@ func InitSQLite() *gorm.DB {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(corrPath+utils.GetConfig("sqlite.path"))
+	loggerLevel := LoggerLevel()
 	db, err := gorm.Open(sqlite.Open(corrPath+utils.GetConfig("sqlite.path")), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix: utils.GetConfig("sqlite.tablePrefix"), // 表名前缀
 		},
-		//Logger: logger.Default.LogMode(logger.Info),
+		Logger: loggerLevel,
 	})
 	if err != nil {
-		fmt.Println("failed to connect database")
-		return nil
+		panic(err)
 	}
 	Sqlite = db
 	//Sqlite.DB().SetMaxIdleConns(1000)
