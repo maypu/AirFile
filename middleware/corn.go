@@ -15,14 +15,16 @@ func MainCron() {
 	c := cron.New()
 	i := 1
 	c.AddFunc("*/1 * * * *", func() {
-		fmt.Println("自动任务执行：", i, "次")
+		if utils.GetConfig("common.environment") == "dev" {
+			fmt.Println("自动任务执行：", i, "次")
+		}
 		AutoDeleteFile()
 		i++
 	})
 	c.Start()
 }
 
-func AutoDeleteFile()  {
+func AutoDeleteFile() {
 	// database
 	dbDriver := utils.GetConfig("database.driver")
 	var db *gorm.DB
@@ -36,7 +38,7 @@ func AutoDeleteFile()  {
 	var mFile []model.File
 	db.Find(&mFile)
 	for i := range mFile {
-		if mFile[i].NumDownloads >= mFile[i].LimitTimes ||  mFile[i].ExpiryTime.Unix() < time.Now().Unix() {
+		if mFile[i].NumDownloads >= mFile[i].LimitTimes || mFile[i].ExpiryTime.Unix() < time.Now().Unix() {
 			wholePath := fmt.Sprintf("%s%s", corrPath, mFile[i].Path)
 			err := os.Remove(wholePath)
 			if err != nil {
