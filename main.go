@@ -9,9 +9,13 @@ import (
 )
 
 
-// CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+// go env -w CGO_ENABLED=0
+// go env -w GOOS=linux
+// go env -w GOARCH=amd64
+// go build
 func main()  {
 	r := gin.Default()
+	//gin.SetMode(gin.ReleaseMode)
 	r.Use(middleware.Cors())
 	//r.Use(middleware.InitSessions(r))
 	r = router.Routers(r)	// 加载路由
