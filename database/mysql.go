@@ -3,7 +3,6 @@ package database
 import (
 	"AirFile/utils"
 	"gorm.io/driver/mysql"
-	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 import "gorm.io/gorm"
@@ -18,7 +17,7 @@ func InitMysql() *gorm.DB {
 			TablePrefix: utils.GetConfig("mysql.tablePrefix"), // 表名前缀
 			//SingularTable: true,
 		},
-		Logger: logger.Default.LogMode(logger.Silent),
+		//Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		panic(err)
