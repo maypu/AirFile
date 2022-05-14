@@ -270,7 +270,7 @@ func Routers(r *gin.Engine) *gin.Engine {
 		db.Where(&model.User{UUID: uuidString}).First(&mUser)
 
 		var mFile []model.File
-		db.Where(&model.File{User: mUser.ID}).Unscoped().Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
+		db.Where(&model.File{User: mUser.ID}).Unscoped().Order("id desc").Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
 		mFile2, _ := json.Marshal(mFile)
 
 		response.Code = 200
