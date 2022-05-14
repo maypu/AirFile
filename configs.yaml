@@ -5,6 +5,9 @@ common:
   # 程序运行端口
   port: 8085
 
+  # 程序运行环境(pro/dev)
+  environment: "pro"
+
 upload:
   # 上传目录
   path: "/files/"

@@ -23,13 +23,7 @@ import (
 
 func Routers(r *gin.Engine) *gin.Engine {
 	// database
-	dbDriver := utils.GetConfig("database.driver")
-	var db *gorm.DB
-	if dbDriver == "sqlite" {
-		db = database.InitSQLite()
-	} else if dbDriver == "mysql" {
-		db = database.InitMysql()
-	}
+	db := database.InitDatabase()
 	//db.Debug()
 	db = middleware.Migrate(db)
 	MCache := mcache.New()
@@ -114,7 +108,6 @@ func Routers(r *gin.Engine) *gin.Engine {
 		} else {
 			strings.Replace(fileDir, "\\", "/", -1)
 		}
-		fmt.Println(fileDir)
 		//创建文件夹
 		if _, err := os.Stat(path.Join(corrPath, fileDir)); os.IsNotExist(err) {
 			err := os.MkdirAll(path.Join(corrPath, fileDir), os.ModePerm)
