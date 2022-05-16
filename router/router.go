@@ -35,7 +35,7 @@ func Routers(r *gin.Engine) *gin.Engine {
 		response := service.VerifyPwd(c, db)
 		c.JSON(http.StatusOK, response)
 	})
-	v1.GET("/file/:fileId", func(c *gin.Context) {
+	v1.GET("/file/:fileCode", func(c *gin.Context) {
 		service.File(c, db)
 	})
 	v1.POST("/history", func(c *gin.Context) {

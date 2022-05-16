@@ -127,12 +127,11 @@ func Download(c *gin.Context, db *gorm.DB) *model.Response {
 			File     bool `json:"file"`
 			Password int  `json:"password"`
 		}
-		result := Result{File: true}
 		isPassword := 0
 		if mFile.Password != "" {
 			isPassword = 1
 		}
-		result = Result{Password: isPassword}
+		result := Result{File: true, Password: isPassword}
 		result2, _ := json.Marshal(result)
 		response.Result = string(result2)
 	}
