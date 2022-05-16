@@ -116,7 +116,6 @@ func Download(c *gin.Context, db *gorm.DB) *model.Response {
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	RandomCode := fmt.Sprintf("%v", params["code"])
-
 	var mFile *model.File
 	db.Where(&model.File{RandomCode: RandomCode}).Find(&mFile)
 	if mFile.Common.ID < 1 || mFile.NumDownloads >= mFile.LimitTimes {
@@ -125,18 +124,17 @@ func Download(c *gin.Context, db *gorm.DB) *model.Response {
 	} else {
 		response.Code = 200
 		type Result struct {
-			File     uint `json:"file"`
+			File     bool `json:"file"`
 			Password int  `json:"password"`
 		}
+		result := Result{File: true}
+		isPassword := 0
 		if mFile.Password != "" {
-			result := Result{File: mFile.Common.ID, Password: 1}
-			result2, _ := json.Marshal(result)
-			response.Result = string(result2)
-		} else {
-			result := Result{File: mFile.Common.ID, Password: 0}
-			result2, _ := json.Marshal(result)
-			response.Result = string(result2)
+			isPassword = 1
 		}
+		result = Result{Password: isPassword}
+		result2, _ := json.Marshal(result)
+		response.Result = string(result2)
 	}
 	return response
 }
@@ -145,11 +143,10 @@ func VerifyPwd(c *gin.Context, db *gorm.DB) *model.Response {
 	response := model.NewResponse()
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
-	fileId := fmt.Sprintf("%v", params["fileId"])
+	fileCode := fmt.Sprintf("%v", params["fileCode"])
 	password := fmt.Sprintf("%v", params["password"])
-
 	var mFile *model.File
-	db.Where("ID = " + fileId).Find(&mFile)
+	db.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
 	if mFile.Common.ID < 1 {
 		response.Code = 404
 		response.Message = "资源不存在"
@@ -168,9 +165,9 @@ func VerifyPwd(c *gin.Context, db *gorm.DB) *model.Response {
 
 func File(c *gin.Context, db *gorm.DB) {
 	response := model.NewResponse()
-	fileId := c.Param("fileId")
+	fileCode := c.Param("fileCode")
 	random := c.Query("random")
-	if fileId == "" || random == "" {
+	if fileCode == "" || random == "" {
 		response.Code = 500
 		response.Message = "错误请求"
 		c.JSON(http.StatusOK, response)
@@ -178,7 +175,7 @@ func File(c *gin.Context, db *gorm.DB) {
 	}
 	MCache := mcache.New()
 	var mFile *model.File
-	db.Where("ID = " + fileId).Find(&mFile)
+	db.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
 	if mFile.Common.ID < 1 {
 		response.Code = 404
 		response.Message = "资源不存在"
@@ -199,7 +196,7 @@ func File(c *gin.Context, db *gorm.DB) {
 	// 下载次数+1
 	randomCache, _ := MCache.Get("random")
 	if randomCache != random {
-		db.Model(&model.File{}).Where("ID = "+fileId).Update("num_downloads", gorm.Expr("num_downloads + ?", 1))
+		db.Model(&model.File{}).Where("ID = ?", mFile.ID).Update("num_downloads", gorm.Expr("num_downloads + ?", 1))
 		err := MCache.Set("random", random, time.Hour*1) //过期时间，1小时
 		if err != nil {
 			fmt.Println("MCache:", err)
