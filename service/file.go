@@ -57,7 +57,6 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 	fileName := random
 	corrPath, _ := os.Getwd() //获取项目的执行路径
 	fileDir := path.Join(utils.GetConfig("upload.path"), time.Now().Format("200601")) + "/"
-	fmt.Println(fileDir)
 	if runtime.GOOS == "windows" {
 		strings.Replace(fileDir, "/", "\\", 5)
 	} else {
