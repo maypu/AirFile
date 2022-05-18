@@ -11,5 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# 本地运行时产生的缓存文件
+/tmp/*
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
