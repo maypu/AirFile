@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/OrlovEvgeny/go-mcache"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"math/rand"
@@ -12,22 +13,32 @@ import (
 	"time"
 )
 
-func GetConfig(key string) string {
+var MCache = mcache.New()
+
+func InitConfig() {
 	//configs.yaml
 	corrPath, err := os.Getwd() //获取项目的执行路径
 	if err != nil {
 		fmt.Println(err)
-		return ""
 	}
 	config := viper.New()
-	config.AddConfigPath(corrPath)                //设置读取的文件路径
-	config.SetConfigName("configs")               //设置读取的文件名
-	config.SetConfigType("yaml")                  //设置文件的类型
-	if err := config.ReadInConfig(); err != nil { //尝试进行配置读取
-		fmt.Println(err)
-		return ""
+	config.AddConfigPath(corrPath)               //设置读取的文件路径
+	config.SetConfigName("configs")          //设置读取的文件名
+	config.SetConfigType("yaml")             //设置文件的类型
+	err = config.ReadInConfig()					//尝试进行配置读取
+	for _,value := range config.AllKeys() {
+		err = MCache.Set("config_"+value, fmt.Sprintf("%v", config.Get(value)), mcache.TTL_FOREVER)
+		if err != nil {
+			panic(err)
+		}
 	}
-	return fmt.Sprintf("%v", config.Get(key))
+}
+
+func GetConfig(key string) string {
+	if data, ok := MCache.Get("config_"+key); ok {
+		return fmt.Sprintf("%v", data)
+	}
+	return ""
 }
 
 func Random(n int) string {

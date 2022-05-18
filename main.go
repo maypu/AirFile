@@ -14,6 +14,7 @@ import (
 func main() {
 	r := middleware.InitGin()
 	r.Use(middleware.Cors())
+	utils.InitConfig()
 	//r.Use(middleware.InitSessions(r))
 	r = router.Routers(r) // 加载路由
 	r = router.Static(r)
