@@ -19,7 +19,7 @@ func InitSQLite() *gorm.DB {
 	loggerLevel := LoggerLevel()
 	db, err := gorm.Open(sqlite.Open(corrPath+utils.GetConfig("sqlite.path")), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: utils.GetConfig("sqlite.tablePrefix"), // 表名前缀
+			TablePrefix: utils.GetConfig("sqlite.prefix"), // 表名前缀
 		},
 		Logger: loggerLevel,
 	})

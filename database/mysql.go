@@ -13,7 +13,7 @@ func InitMysql() *gorm.DB {
 	dsn := utils.GetConfig("mysql.user") + ":" + utils.GetConfig("mysql.password") + "@tcp(" + utils.GetConfig("mysql.domain") + ":" + utils.GetConfig("mysql.port") + ")/" + utils.GetConfig("mysql.dbname") + "?charset=" + utils.GetConfig("mysql.charset") + "&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: utils.GetConfig("mysql.tablePrefix"), // 表名前缀
+			TablePrefix: utils.GetConfig("mysql.prefix"), // 表名前缀
 			//SingularTable: true,
 		},
 		Logger: loggerLevel,

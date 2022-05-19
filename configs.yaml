@@ -23,7 +23,7 @@ sqlite:
   # 数据库文件目录
   path: "/database/data.db"
   # 表前缀
-  tablePrefix: "air_"
+  prefix: "air_"
 
 mysql:
   #mysql地址
@@ -39,4 +39,4 @@ mysql:
   #数据库名称
   dbname: "AirFile"
   #表前缀
-  tablePrefix: "air_"
+  prefix: "air_"
