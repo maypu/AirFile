@@ -217,7 +217,8 @@ func History(c *gin.Context, db *gorm.DB) *model.Response {
 	db.Where(&model.User{UUID: uuidString}).First(&mUser)
 
 	var mFile []model.File
-	db.Where(&model.File{User: mUser.ID}).Unscoped().Order("id desc").Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
+	selectField := []string{"FileName", "RandomCode", "NumDownloads", "LimitTimes", "ExpiryTime", "CreatedAt", "DeletedAt", "Status"}
+	db.Select(selectField).Where(&model.File{User: mUser.ID}).Unscoped().Order("id desc").Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
 	mFile2, _ := json.Marshal(mFile)
 
 	response.Code = 200
