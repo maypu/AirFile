@@ -3,11 +3,13 @@ package service
 import (
 	"AirFile/model"
 	"AirFile/utils"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/OrlovEvgeny/go-mcache"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -200,11 +202,21 @@ func File(c *gin.Context, db *gorm.DB) {
 			fmt.Println("MCache:", err)
 		}
 	}
+
+	fileStat, _ := file.Stat()
 	// 发送下载header
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+mFile.FileName)
 	c.Header("Content-Transfer-Encoding", "binary")
-	c.File(wholePath)
+	c.Header("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
+
+	//c.File(wholePath)
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		fmt.Println(err)
+	}
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Writer.Write(buf.Bytes())
 }
 
 func History(c *gin.Context, db *gorm.DB) *model.Response {
