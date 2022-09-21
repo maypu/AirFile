@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/OrlovEvgeny/go-mcache"
@@ -22,11 +23,11 @@ func InitConfig() {
 		fmt.Println(err)
 	}
 	config := viper.New()
-	config.AddConfigPath(corrPath)               //设置读取的文件路径
-	config.SetConfigName("configs")          //设置读取的文件名
-	config.SetConfigType("yaml")             //设置文件的类型
-	err = config.ReadInConfig()					//尝试进行配置读取
-	for _,value := range config.AllKeys() {
+	config.AddConfigPath(corrPath)  //设置读取的文件路径
+	config.SetConfigName("configs") //设置读取的文件名
+	config.SetConfigType("yaml")    //设置文件的类型
+	err = config.ReadInConfig()     //尝试进行配置读取
+	for _, value := range config.AllKeys() {
 		err = MCache.Set("config_"+value, fmt.Sprintf("%v", config.Get(value)), mcache.TTL_FOREVER)
 		if err != nil {
 			panic(err)
@@ -35,7 +36,7 @@ func InitConfig() {
 }
 
 func GetConfig(key string) string {
-	if data, ok := MCache.Get("config_"+key); ok {
+	if data, ok := MCache.Get("config_" + key); ok {
 		return fmt.Sprintf("%v", data)
 	}
 	return ""
@@ -46,11 +47,16 @@ func Random(n int) string {
 	letters := []rune("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	//letters := []rune("0123456789abcdefghijklmnopqrstuvwxyz")
 	b := make([]rune, n)
-	r:=rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := range b {
 		b[i] = letters[r.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+//BytesCombine 多个[]byte数组合并成一个[]byte
+func BytesCombine(pBytes ...[]byte) []byte {
+	return bytes.Join(pBytes, []byte(""))
 }
 
 func GetLocalIP() []string {

@@ -2,60 +2,51 @@ package utils
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/base64"
+	"io"
+	"os"
 )
 
-func AesEncrypt(orig string, key string) string {
-	// 转成字节数组
-	origData := []byte(orig)
-	k := []byte(key)
-	// 分组秘钥
-	// NewCipher该函数限制了输入k的长度必须为16, 24或者32
-	block, _ := aes.NewCipher(k)
-	// 获取秘钥块的长度
-	blockSize := block.BlockSize()
-	// 补全码
-	origData = PKCS7Padding(origData, blockSize)
-	// 加密模式
-	blockMode := cipher.NewCBCEncrypter(block, k[:blockSize])
-	// 创建数组
-	cryted := make([]byte, len(origData))
-	// 加密
-	blockMode.CryptBlocks(cryted, origData)
-	return base64.StdEncoding.EncodeToString(cryted)
-}
-func AesDecrypt(cryted string, key string) string {
-	// 转成字节数组
-	crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
-	k := []byte(key)
-	// 分组秘钥
-	block, _ := aes.NewCipher(k)
-	// 获取秘钥块的长度
-	blockSize := block.BlockSize()
-	// 加密模式
-	blockMode := cipher.NewCBCDecrypter(block, k[:blockSize])
-	// 创建数组
-	orig := make([]byte, len(crytedByte))
-	// 解密
-	blockMode.CryptBlocks(orig, crytedByte)
-	// 去补全码
-	orig = PKCS7UnPadding(orig)
-	return string(orig)
+func Encrypter(fileBuffer bytes.Buffer, filepath string) bool {
+	outfile, err := os.Create(filepath)
+	if err != nil {
+		panic(err)
+		return false
+	}
+	defer outfile.Close()
+	length := fileBuffer.Len()
+	size := length / 245
+	//循环加密
+	for i := 0; i < size; i++ {
+		block := fileBuffer.Bytes()[i*245 : (i+1)*245]
+		outfile.Write(BytesCombine(block, []byte(GetConfig("common.name"))))
+	}
+	//处理剩余部分
+	block := fileBuffer.Bytes()[size*245:]
+	outfile.Write(BytesCombine(block, []byte(GetConfig("common.name"))))
+	return true
 }
 
-// PKCS7Padding 补码
-// AES加密数据块分组长度必须为128bit(byte[16])，密钥长度可以是128bit(byte[16])、192bit(byte[24])、256bit(byte[32])中的任意一个。
-func PKCS7Padding(ciphertext []byte, blocksize int) []byte {
-	padding := blocksize - len(ciphertext)%blocksize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
+func Decrypter(filepath string) *bytes.Buffer {
+	file, err := os.Open(filepath) //打开文件
+	if err != nil {
+		return nil
+		panic(err)
+	}
+	defer file.Close()
 
-//去码
-func PKCS7UnPadding(origData []byte) []byte {
-	length := len(origData)
-	unpadding := int(origData[length-1])
-	return origData[:(length - unpadding)]
+	fileBuffer := bytes.NewBuffer(nil)
+	if _, err := io.Copy(fileBuffer, file); err != nil {
+		panic(err)
+		return nil
+	}
+
+	outfile := bytes.NewBuffer(nil)
+	length := fileBuffer.Len()
+	encLen := 245 + len(GetConfig("common.name"))
+	//循环解密
+	for i := 0; i < (length / encLen); i++ {
+		block := fileBuffer.Bytes()[i*encLen : (i+1)*encLen]
+		outfile.Write(bytes.Split(block, []byte(GetConfig("common.name")))[0])
+	}
+	return outfile
 }

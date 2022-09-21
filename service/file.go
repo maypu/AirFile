@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -77,7 +78,16 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 	}
 	//组装完整路径与文件名和后缀
 	filepath := fmt.Sprintf("%s%s%s", corrPath+fileDir, fileName, fileExt)
-	if err := c.SaveUploadedFile(f, filepath); err != nil {
+
+	file, _, err := c.Request.FormFile("file")
+	fileBuf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(fileBuf, file); err != nil {
+		fmt.Println(err)
+	}
+	errEnc := utils.Encrypter(*fileBuf, filepath)
+
+	//if err := c.SaveUploadedFile(f, filepath); err != nil {
+	if !errEnc {
 		fmt.Println(err)
 		response.Code = 500
 		response.Message = "上传失败"
@@ -193,6 +203,15 @@ func File(c *gin.Context, db *gorm.DB) {
 		return
 	}
 	defer file.Close()
+
+	fileBuffer := utils.Decrypter(wholePath)
+	if reflect.ValueOf(fileBuffer).IsNil() == true {
+		response.Code = 404
+		response.Message = "资源不存在了"
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
 	// 下载次数+1
 	randomCache, _ := MCache.Get("random")
 	if randomCache != random {
@@ -203,20 +222,22 @@ func File(c *gin.Context, db *gorm.DB) {
 		}
 	}
 
-	fileStat, _ := file.Stat()
+	//fileStat, _ := file.Stat()
+
 	// 发送下载header
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+mFile.FileName)
 	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
-
+	//c.Header("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
 	//c.File(wholePath)
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		fmt.Println(err)
-	}
+
+	//fileBuffer := bytes.NewfileBufferfer(nil)
+	//if _, err := io.Copy(fileBuffer, file); err != nil {
+	//	fmt.Println(err)
+	//}
+
 	c.Writer.WriteHeader(http.StatusOK)
-	c.Writer.Write(buf.Bytes())
+	c.Writer.Write(fileBuffer.Bytes())
 }
 
 func History(c *gin.Context, db *gorm.DB) *model.Response {
