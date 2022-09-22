@@ -84,7 +84,7 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 	if _, err := io.Copy(fileBuf, file); err != nil {
 		fmt.Println(err)
 	}
-	errEnc := utils.Encrypter(*fileBuf, filepath)
+	errEnc := utils.FileEncrypt(*fileBuf, filepath)
 
 	//if err := c.SaveUploadedFile(f, filepath); err != nil {
 	if !errEnc {
@@ -204,7 +204,7 @@ func File(c *gin.Context, db *gorm.DB) {
 	}
 	defer file.Close()
 
-	fileBuffer := utils.Decrypter(wholePath)
+	fileBuffer := utils.FileDecrypt(wholePath)
 	if reflect.ValueOf(fileBuffer).IsNil() == true {
 		response.Code = 404
 		response.Message = "资源不存在了"
