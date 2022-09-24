@@ -14,5 +14,8 @@
 # 本地运行时产生的缓存文件
 /tmp/*
 
+# 文件
+files/
+
 # Dependency directories (remove the comment below to include it)
 # vendor/

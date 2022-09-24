@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// FileEncrypt 文件加密
 func FileEncrypt(fileBuffer bytes.Buffer, filepath string) bool {
 	outfile, err := os.Create(filepath)
 	if err != nil {
@@ -15,20 +16,21 @@ func FileEncrypt(fileBuffer bytes.Buffer, filepath string) bool {
 	}
 	defer outfile.Close()
 	length := fileBuffer.Len()
-	size := length / 245
+	splitLength := SplitLength(fileBuffer)
+	size := length / splitLength
 	key := base64.StdEncoding.EncodeToString([]byte(GetConfig("common.name")))
 	//循环加密
 	for i := 0; i < size; i++ {
-		block := fileBuffer.Bytes()[i*245 : (i+1)*245]
+		block := fileBuffer.Bytes()[i*splitLength : (i+1)*splitLength]
 		outfile.Write(BytesCombine(block, []byte(key)))
 	}
 	//处理剩余部分
-	block := fileBuffer.Bytes()[size*245:]
-
-	outfile.Write(BytesCombine(block, []byte(key)))
+	block := fileBuffer.Bytes()[size*splitLength:]
+	outfile.Write(block)
 	return true
 }
 
+// FileDecrypt 文件解密
 func FileDecrypt(filepath string) *bytes.Buffer {
 	file, err := os.Open(filepath) //打开文件
 	if err != nil {
@@ -45,12 +47,34 @@ func FileDecrypt(filepath string) *bytes.Buffer {
 
 	outfile := bytes.NewBuffer(nil)
 	length := fileBuffer.Len()
+	splitLength := SplitLength(*fileBuffer)
 	key := base64.StdEncoding.EncodeToString([]byte(GetConfig("common.name")))
-	encLen := 245 + len(key)
+	encLen := len(key) + splitLength
 	//循环解密
-	for i := 0; i < (length / encLen); i++ {
-		block := fileBuffer.Bytes()[i*encLen : (i+1)*encLen]
-		outfile.Write(bytes.Split(block, []byte(key))[0])
+	for i := 0; i <= (length / encLen); i++ {
+		var block []byte
+		if i == 0 {
+			block = fileBuffer.Bytes()[0:splitLength]
+		} else if i == (length / encLen) {
+			block = fileBuffer.Bytes()[splitLength+(i-1)*encLen:]
+		} else {
+			block = fileBuffer.Bytes()[splitLength+(i-1)*encLen : splitLength+(i)*encLen]
+		}
+		decByte := bytes.Replace(block, []byte(key), []byte(""), 1)
+		//decByte := bytes.Split(block, []byte(key))[0]
+		outfile.Write(decByte)
 	}
 	return outfile
+}
+
+// SplitLength 通过分割长度，最终分成1-10切片
+func SplitLength(fileBuffer bytes.Buffer) int {
+	key := base64.StdEncoding.EncodeToString([]byte(GetConfig("common.name")))
+	fileBytes := bytes.Replace(fileBuffer.Bytes(), []byte(key), []byte(""), -1)
+	length := len(fileBytes)
+	splitLen := int(length / 10) //向下取整
+	if splitLen == 0 {
+		splitLen = length
+	}
+	return splitLen
 }
