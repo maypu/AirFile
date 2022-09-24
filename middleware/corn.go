@@ -39,10 +39,6 @@ func AutoDeleteFile() {
 	db.Find(&mFile)
 	for i := range mFile {
 		if mFile[i].NumDownloads >= mFile[i].LimitTimes || mFile[i].ExpiryTime.Unix() < time.Now().Unix() {
-			fmt.Println("mFile[i].NumDownloads:", mFile[i].NumDownloads)
-			fmt.Println("mFile[i].LimitTimes:", mFile[i].LimitTimes)
-			fmt.Println("mFile[i].ExpiryTime.Unix():", mFile[i].ExpiryTime.Unix())
-			fmt.Println("time.Now().Unix():", time.Now().Unix())
 			wholePath := fmt.Sprintf("%s%s", corrPath, mFile[i].Path)
 			err := os.Remove(wholePath)
 			if err != nil {
