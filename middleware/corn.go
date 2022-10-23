@@ -6,7 +6,6 @@ import (
 	"AirFile/utils"
 	"fmt"
 	"github.com/robfig/cron/v3"
-	"gorm.io/gorm"
 	"os"
 	"time"
 )
@@ -25,18 +24,10 @@ func MainCron() {
 }
 
 func AutoDeleteFile() {
-	// database
-	dbDriver := utils.GetConfig("database.driver")
-	var db *gorm.DB
-	if dbDriver == "sqlite" {
-		db = database.InitSQLite()
-	} else if dbDriver == "mysql" {
-		db = database.InitMysql()
-	}
 	corrPath, _ := os.Getwd() //获取项目的执行路径
 
 	var mFile []model.File
-	db.Find(&mFile)
+	database.DB.Find(&mFile)
 	for i := range mFile {
 		if mFile[i].NumDownloads >= mFile[i].LimitTimes || mFile[i].ExpiryTime.Unix() < time.Now().Unix() {
 			wholePath := fmt.Sprintf("%s%s", corrPath, mFile[i].Path)
@@ -45,7 +36,7 @@ func AutoDeleteFile() {
 				fmt.Println(err)
 				fmt.Println("文件删除失败！")
 			}
-			db.Delete(&mFile[i])
+			database.DB.Delete(&mFile[i])
 		}
 	}
 }

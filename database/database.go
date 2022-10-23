@@ -7,22 +7,23 @@ import (
 	"time"
 )
 
-func InitDatabase() *gorm.DB {
+var DB *gorm.DB
+
+func InitDatabase() {
 	dbDriver := utils.GetConfig("database.driver")
-	var db *gorm.DB
 	if dbDriver == "sqlite" {
-		db = InitSQLite()
+		DB = InitSQLite()
 	} else if dbDriver == "mysql" {
-		db = InitMysql()
+		DB = InitMysql()
 	}
-	sqlDB, err := db.DB()
+	sqlDB, err := DB.DB()
 	if err != nil {
 		panic("连接数据库失败！")
 	}
-	sqlDB.SetMaxIdleConns(50) 			// 空闲连接数
-	sqlDB.SetMaxOpenConns(50)			// 最大连接数
-	sqlDB.SetConnMaxLifetime(time.Minute)	// 高并发情况下连接频繁失效，可修改为time.Hour
-	return db
+	sqlDB.SetMaxIdleConns(50)             // 空闲连接数
+	sqlDB.SetMaxOpenConns(50)             // 最大连接数
+	sqlDB.SetConnMaxLifetime(time.Minute) // 高并发情况下连接频繁失效，可修改为time.Hour
+	//return db
 }
 
 func LoggerLevel() logger.Interface {

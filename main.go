@@ -1,6 +1,7 @@
 package main
 
 import (
+	"AirFile/database"
 	"AirFile/middleware"
 	"AirFile/router"
 	"AirFile/utils"
@@ -15,6 +16,10 @@ func main() {
 	r := middleware.InitGin()
 	r.Use(middleware.Cors())
 	utils.InitConfig()
+	// database
+	database.InitDatabase()
+	//db.Debug()
+	middleware.Migrate()
 	//r.Use(middleware.InitSessions(r))
 	r = router.Routers(r) // 加载路由
 	r = router.Static(r)

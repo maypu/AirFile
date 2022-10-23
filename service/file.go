@@ -1,6 +1,7 @@
 package service
 
 import (
+	"AirFile/database"
 	"AirFile/model"
 	"AirFile/utils"
 	"bytes"
@@ -21,7 +22,7 @@ import (
 	"time"
 )
 
-func Upload(c *gin.Context, db *gorm.DB) *model.Response {
+func Upload(c *gin.Context) *model.Response {
 	response := model.NewResponse()
 	uuidString := c.DefaultPostForm("uuid", "")
 	password := c.DefaultPostForm("password", "")
@@ -29,12 +30,13 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 	limithours := c.DefaultPostForm("limithours", "")
 	clintIp := c.ClientIP()
 	f, err := c.FormFile("file")
+
 	if err != nil {
 		panic(err)
 	}
 	//取userid
 	var mUser model.User
-	db.Where(&model.User{UUID: uuidString}).Find(&mUser)
+	database.DB.Where(&model.User{UUID: uuidString}).Find(&mUser)
 	if err != nil {
 		response.Code = 500
 		response.Message = "获取文件失败"
@@ -110,7 +112,7 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 			ExpiryTime:   nowAfterHour,
 			Common:       common,
 		}
-		if err := db.Create(&mFile).Error; err != nil {
+		if err := database.DB.Create(&mFile).Error; err != nil {
 			response.Code = 500
 			response.Message = "上传失败"
 			return nil
@@ -122,13 +124,13 @@ func Upload(c *gin.Context, db *gorm.DB) *model.Response {
 	return response
 }
 
-func Download(c *gin.Context, db *gorm.DB) *model.Response {
+func Download(c *gin.Context) *model.Response {
 	response := model.NewResponse()
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	RandomCode := fmt.Sprintf("%v", params["code"])
 	var mFile *model.File
-	db.Where(&model.File{RandomCode: RandomCode}).Find(&mFile)
+	database.DB.Where(&model.File{RandomCode: RandomCode}).Find(&mFile)
 	if mFile.Common.ID < 1 || mFile.NumDownloads >= mFile.LimitTimes {
 		response.Code = 404
 		response.Message = "资源不存在"
@@ -149,14 +151,14 @@ func Download(c *gin.Context, db *gorm.DB) *model.Response {
 	return response
 }
 
-func VerifyPwd(c *gin.Context, db *gorm.DB) *model.Response {
+func VerifyPwd(c *gin.Context) *model.Response {
 	response := model.NewResponse()
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	fileCode := fmt.Sprintf("%v", params["fileCode"])
 	password := fmt.Sprintf("%v", params["password"])
 	var mFile *model.File
-	db.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
+	database.DB.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
 	if mFile.Common.ID < 1 {
 		response.Code = 404
 		response.Message = "资源不存在"
@@ -173,7 +175,7 @@ func VerifyPwd(c *gin.Context, db *gorm.DB) *model.Response {
 	return response
 }
 
-func File(c *gin.Context, db *gorm.DB) {
+func File(c *gin.Context) {
 	response := model.NewResponse()
 	fileCode := c.Param("fileCode")
 	random := c.Query("random")
@@ -185,7 +187,7 @@ func File(c *gin.Context, db *gorm.DB) {
 	}
 	MCache := mcache.New()
 	var mFile *model.File
-	db.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
+	database.DB.Where(&model.File{RandomCode: fileCode}).Find(&mFile)
 	if mFile.Common.ID < 1 {
 		response.Code = 404
 		response.Message = "资源不存在"
@@ -215,7 +217,7 @@ func File(c *gin.Context, db *gorm.DB) {
 	// 下载次数+1
 	randomCache, _ := MCache.Get("random")
 	if randomCache != random {
-		db.Model(&model.File{}).Where("ID = ?", mFile.ID).Update("num_downloads", gorm.Expr("num_downloads + ?", 1))
+		database.DB.Model(&model.File{}).Where("ID = ?", mFile.ID).Update("num_downloads", gorm.Expr("num_downloads + ?", 1))
 		err := MCache.Set("random", random, time.Hour*1) //过期时间，1小时
 		if err != nil {
 			fmt.Println("MCache:", err)
@@ -240,18 +242,18 @@ func File(c *gin.Context, db *gorm.DB) {
 	c.Writer.Write(fileBuffer.Bytes())
 }
 
-func History(c *gin.Context, db *gorm.DB) *model.Response {
+func History(c *gin.Context) *model.Response {
 	response := model.NewResponse()
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	uuidString := fmt.Sprintf("%v", params["uuid"])
 
 	var mUser *model.User
-	db.Where(&model.User{UUID: uuidString}).First(&mUser)
+	database.DB.Where(&model.User{UUID: uuidString}).First(&mUser)
 
 	var mFile []model.File
 	selectField := []string{"FileName", "RandomCode", "NumDownloads", "LimitTimes", "ExpiryTime", "CreatedAt", "DeletedAt", "Status"}
-	db.Select(selectField).Where(&model.File{User: mUser.ID}).Unscoped().Order("id desc").Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
+	database.DB.Select(selectField).Where(&model.File{User: mUser.ID}).Unscoped().Order("id desc").Find(&mFile) //Unscoped method to prevent adding deleted_at IS NULL
 	mFile2, _ := json.Marshal(mFile)
 
 	response.Code = 200
