@@ -23,6 +23,7 @@ func InitDatabase() {
 	sqlDB.SetMaxIdleConns(50)             // 空闲连接数
 	sqlDB.SetMaxOpenConns(50)             // 最大连接数
 	sqlDB.SetConnMaxLifetime(time.Minute) // 高并发情况下连接频繁失效，可修改为time.Hour
+	//defer sqlDB.Close()
 	//return db
 }
 
