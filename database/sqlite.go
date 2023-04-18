@@ -3,7 +3,7 @@ package database
 import (
 	"AirFile/utils"
 	"fmt"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"os"
