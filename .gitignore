@@ -16,6 +16,7 @@
 
 # 文件
 files/
+.idea/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

@@ -1,12 +1,12 @@
 common:
   # 程序名称
-  name: "AirFile"
+  name: "AirFile1"
 
   # 程序运行端口
-  port: 8085
+  port: 8072
 
   # 程序运行环境(pro/dev)
-  environment: "pro"
+  environment: "dev"
 
 upload:
   # 上传目录
