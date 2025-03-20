@@ -34,6 +34,10 @@ COPY ./database/data.db ./database/
 # 为database目录及其内容添加可写入权限
 RUN chmod -R a+w /app/database
 
+# 创建files文件夹存储文件
+RUN mkdir -p /app/files
+RUN chmod -R a+w /app/files
+
 # 设置时区为上海
 ENV TZ=Asia/Shanghai
 

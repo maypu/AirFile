@@ -7,7 +7,21 @@ AirFile 文件快速分享系统
 `golang`
 `gin`
 
-#### 安装
+#### 部署
+https://hub.docker.com/r/maypu/airfile
+
+Simple startup command:
+```
+docker run -d -p 8086:8086 --name=airfile --restart=always maypu/airfile:latest
+```
+
+More custom configuration startup commands:
+```
+docker run -d -p 8086:8086 -v /path/to/host/database:/app/database -v /path/to/host/files:/app/files --name=airfile --restart=always maypu/airfile:latest
+```
+Replace `/path/to/host/files` with the host path you wish to place
+
+#### 开发
 ```shell
 git clone https://github.com/maypu/AirFile.git
 cd AirFile
