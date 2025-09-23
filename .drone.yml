@@ -24,6 +24,10 @@ steps:
   # 构建 Docker 镜像
   - name: build-image
     image: docker
+    privileged: true
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
     commands:
       - docker build -t maypu/airfile:latest .
 
@@ -55,10 +59,13 @@ steps:
           --restart=always \
           maypu/airfile:latest
     environment:
-      APP_PORT: 8086               # 默认宿主机端口 8086
-      DOCKER_DIR: /home/maypu/docker  # 默认宿主机挂载路径
+      # 默认宿主机端口 8086
+      APP_PORT: 8086
+      # 默认宿主机挂载路径
+      DOCKER_DIR: /home/maypu/docker
   
   - name: debug
     image: alpine
     commands:
-        - ls -la /drone/src  # 查看 Drone 默认克隆的目录
+        # 查看 Drone 默认克隆的目录
+        - ls -la /drone/src
