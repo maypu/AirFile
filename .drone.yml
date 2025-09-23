@@ -4,7 +4,7 @@ name: Build, Push, and Deploy
 
 steps:
   # 克隆代码
-  - name: clone
+  - name: clone-repo
     image: alpine/git
     commands:
       - git clone https://github.com/maypu/AirFile.git .
@@ -22,19 +22,19 @@ steps:
       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   # 构建 Docker 镜像
-  - name: build
+  - name: build-image
     image: docker
     commands:
       - docker build -t maypu/airfile:latest .
 
   # 推送 Docker 镜像到 Docker Hub
-  - name: push
+  - name: push-image
     image: docker
     commands:
       - docker push maypu/airfile:latest
 
   # SSH 到服务器并启动容器（使用环境变量）
-  - name: deploy
+  - name: ssh-deploy
     image: appleboy/drone-ssh
     settings:
       host:
