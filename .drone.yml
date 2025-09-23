@@ -1,0 +1,59 @@
+kind: pipeline
+type: docker
+name: Build, Push, and Deploy
+
+steps:
+  # 克隆代码
+  - name: clone
+    image: alpine/git
+    commands:
+      - git clone https://github.com/maypu/AirFile.git .
+      - git checkout $DRONE_COMMIT
+
+  # 登录 Docker Hub
+  - name: docker-login
+    image: docker
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
+    commands:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+  # 构建 Docker 镜像
+  - name: build
+    image: docker
+    commands:
+      - docker build -t maypu/airfile:latest .
+
+  # 推送 Docker 镜像到 Docker Hub
+  - name: push
+    image: docker
+    commands:
+      - docker push maypu/airfile:latest
+
+  # SSH 到服务器并启动容器（使用环境变量）
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_username
+      password:
+        from_secret: ssh_password
+      port: ssh_port
+      script:
+        - docker stop airfile || true
+        - docker rm airfile || true
+        - docker run -d \
+          -p ${APP_PORT}:8086 \
+          -v ${DOCKER_DIR}/airfile/database:/app/database \
+          -v ${DOCKER_DIR}/airfile/files:/app/files \
+          --name=airfile \
+          --restart=always \
+          maypu/airfile:latest
+    environment:
+      APP_PORT: 8086               # 默认宿主机端口 8086
+      DOCKER_DIR: /home/maypu/docker  # 默认宿主机挂载路径
