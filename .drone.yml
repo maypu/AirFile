@@ -4,11 +4,11 @@ name: Build, Push, and Deploy
 
 steps:
   # 克隆代码
-  - name: clone-repo
-    image: alpine/git
-    commands:
-      - git clone https://github.com/maypu/AirFile.git .
-      - git checkout $DRONE_COMMIT
+  #- name: clone-repo
+  #  image: alpine/git
+  #  commands:
+  #    - git clone https://github.com/maypu/AirFile.git .
+  #    - git checkout $DRONE_COMMIT
 
   # 登录 Docker Hub
   - name: docker-login
@@ -57,3 +57,8 @@ steps:
     environment:
       APP_PORT: 8086               # 默认宿主机端口 8086
       DOCKER_DIR: /home/maypu/docker  # 默认宿主机挂载路径
+  
+  - name: debug
+    image: alpine
+    commands:
+        - ls -la /drone/src  # 查看 Drone 默认克隆的目录
