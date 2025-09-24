@@ -52,9 +52,9 @@ steps:
           SSH_PORT:
             from_secret: ssh_port
       script:
-          - docker stop airfile || true
-          - docker rm airfile || true
-          - docker run -d \
+          - docker ps -aq -f name=^airfile$ | grep -q . && docker stop airfile || echo "Container not running"
+          - docker ps -aq -f name=^airfile$ | grep -q . && docker rm airfile || echo "Container not found"
+            - docker run -d \
             -p ${APP_PORT:-8086}:8086 \
             -v ${DOCKER_DIR:-/home/maypu/docker}/airfile/database:/app/database \
             -v ${DOCKER_DIR:-/home/maypu/docker}/airfile/files:/app/files \
