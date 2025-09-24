@@ -1,5 +1,5 @@
 # 使用官方的Golang镜像作为基础镜像
-FROM dockerproxy.net/library/golang:1.19-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY . .
 RUN go build -o airfile .
 
 # 使用轻量级的Alpine镜像作为运行环境
-FROM dockerproxy.net/library/alpine:latest
+FROM alpine:latest
 
 # 设置工作目录
 WORKDIR /app
