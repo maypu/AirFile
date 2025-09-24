@@ -21,21 +21,20 @@ steps:
     commands:
       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-  # 构建 Docker 镜像
-  - name: build-image
-    image: docker
-    privileged: true
-    volumes:
-      - name: docker-sock
-        path: /var/run/docker.sock
-    commands:
-      - docker build -t maypu/airfile:latest .
-
-  # 推送 Docker 镜像到 Docker Hub
-  - name: push-image
-    image: docker
-    commands:
-      - docker push maypu/airfile:latest
+  # 构建 Docker 镜像，推送 Docker 镜像到 Docker Hub
+  - name: build-and-push
+    image: plugins/docker
+    settings:
+      # 如果 Dockerfile 不在根目录，需指定路径
+      dockerfile: Dockerfile
+      # Docker Hub 仓库名
+      repo: maypu/airfile
+      # 镜像标签
+      tags: latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret docker_password
 
   # SSH 到服务器并启动容器（使用环境变量）
   - name: ssh-deploy
