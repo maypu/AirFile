@@ -46,25 +46,21 @@ steps:
         from_secret: ssh_username
       password:
         from_secret: ssh_password
+      environment:
+          # 仅影响 SSH 连接，不影响 docker run
+          PLUGIN_PORT: ${SSH_PORT:-22}
+          SSH_PORT:
+            from_secret: ssh_port
       script:
-        - docker stop airfile || true
-        - docker rm airfile || true
-        - docker run -d \
-          -p ${APP_PORT}:8086 \
-          -v ${DOCKER_DIR}/airfile/database:/app/database \
-          -v ${DOCKER_DIR}/airfile/files:/app/files \
-          --name=airfile \
-          --restart=always \
-          maypu/airfile:latest
-    environment:
-      # Secrets 优先，否则默认 22
-      PLUGIN_PORT: ${SSH_PORT:-22}
-      SECRET_PORT:
-        from_secret: ssh_port
-      # 默认宿主机端口 8086
-      APP_PORT: 8086
-      # 默认宿主机挂载路径
-      DOCKER_DIR: /home/maypu/docker
+          - docker stop airfile || true
+          - docker rm airfile || true
+          - docker run -d \
+            -p ${APP_PORT:-8086}:8086 \
+            -v ${DOCKER_DIR:-/home/maypu/docker}/airfile/database:/app/database \
+            -v ${DOCKER_DIR:-/home/maypu/docker}/airfile/files:/app/files \
+            --name=airfile \
+            --restart=always \
+            maypu/airfile:latest
   
   - name: debug
     image: alpine
