@@ -46,7 +46,6 @@ steps:
         from_secret: ssh_username
       password:
         from_secret: ssh_password
-      port: ssh_port
       script:
         - docker stop airfile || true
         - docker rm airfile || true
@@ -58,6 +57,10 @@ steps:
           --restart=always \
           maypu/airfile:latest
     environment:
+      # Secrets 优先，否则默认 22
+      PLUGIN_PORT: ${SSH_PORT:-22}
+      SECRET_PORT:
+        from_secret: ssh_port
       # 默认宿主机端口 8086
       APP_PORT: 8086
       # 默认宿主机挂载路径
