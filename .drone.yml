@@ -11,15 +11,15 @@ steps:
   #    - git checkout $DRONE_COMMIT
 
   # 登录 Docker Hub
-  - name: docker-login
-    image: docker
-    environment:
-      DOCKER_USERNAME:
-        from_secret: docker_username
-      DOCKER_PASSWORD:
-        from_secret: docker_password
-    commands:
-      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  #- name: docker-login
+  #  image: docker
+  #  environment:
+  #    DOCKER_USERNAME:
+  #      from_secret: docker_username
+  #    DOCKER_PASSWORD:
+  #      from_secret: docker_password
+  #  commands:
+  #    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   # 构建 Docker 镜像，推送 Docker 镜像到 Docker Hub
   - name: build-and-push
@@ -34,7 +34,7 @@ steps:
       username:
         from_secret: docker_username
       password:
-        from_secret docker_password
+        from_secret: docker_password
 
   # SSH 到服务器并启动容器（使用环境变量）
   - name: ssh-deploy
