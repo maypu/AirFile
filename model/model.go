@@ -38,6 +38,7 @@ type File struct {
 	NumDownloads int       `gorm:"comment:'已下载次数'"`
 	LimitTimes   int       `gorm:"comment:'限制次数'"`
 	ExpiryTime   time.Time `gorm:"comment:'过期时间'"`
+	FileType     string    `gorm:"default:file;comment:'类型: file/text'"`
 	Common
 }
 

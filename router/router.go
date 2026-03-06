@@ -32,6 +32,13 @@ func Routers(r *gin.Engine) *gin.Engine {
 	v1.GET("/file/:fileCode", func(c *gin.Context) {
 		service.File(c)
 	})
+	v1.POST("/uploadText", func(c *gin.Context) {
+		response := service.UploadText(c)
+		c.JSON(http.StatusOK, response)
+	})
+	v1.GET("/preview/:fileCode", func(c *gin.Context) {
+		service.Preview(c)
+	})
 	v1.POST("/history", func(c *gin.Context) {
 		response := service.History(c)
 		c.JSON(http.StatusOK, response)
